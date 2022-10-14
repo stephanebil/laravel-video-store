@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Video;
 use Illuminate\Http\Request;
 
 class VideoController extends Controller
@@ -13,7 +14,9 @@ class VideoController extends Controller
      */
     public function index()
     {
-        //
+        // $videos = Video::all();
+        $videos = Video::paginate(10);
+        return view('pages.home', compact('videos'));
     }
 
     /**
@@ -23,7 +26,7 @@ class VideoController extends Controller
      */
     public function create()
     {
-        //
+        return view('pages.create');
     }
 
     /**
@@ -34,7 +37,28 @@ class VideoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // dd($request->all());
+        // validation du formulaire
+        $request->validate([
+            'title'=> 'required|max:255',
+            'description'=>'required|max:1000',
+            'url_img'=> 'required|max:2000|mimes:png,jpg',
+        ]);
+
+        $validateImg = $request->file('url_img')->store('cover');
+
+        Video::create([
+            'title' => $request->title,
+            'description' => $request->description,
+            'url_img' => $validateImg,
+            'actors' => $request->actors,
+            'nationality' => $request->nationality,
+            'year_created' => $request->year_created,
+            'created_at' =>now()
+        ]);
+
+        // redirect
+        return redirect()->route('home')->with('status', 'Vidéo enregistré');
     }
 
     /**
@@ -43,9 +67,11 @@ class VideoController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    // public function show(Video $id)
+    public function show(Video $video)
     {
-        //
+        // dd($video);
+        return view('pages.show', compact('video'));
     }
 
     /**
@@ -77,8 +103,11 @@ class VideoController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    // public function destroy($id)
+    public function destroy(Video $video)
     {
-        //
+        $video->delete();
+        // return redirect('/')->with('status', 'Video deleted!');
+        return redirect()->route('home')->with('status', 'Video deleted!');
     }
 }
